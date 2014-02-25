@@ -3,11 +3,14 @@ import MySQLdb, utils
 
 app = Flask(__name__)
 
+currentUser = ''
+
 @app.route('/', methods=['GET', 'POST'])
 def mainIndex():
     db = utils.db_connect()
     cur = db.cursor(cursorclass=MySQLdb.cursors.DictCursor)
     queryType = 'None'
+    print('User: ' + currentUser)
     rows = []
     # if user typed in a post ...
     if request.method == 'POST':
@@ -18,7 +21,7 @@ def mainIndex():
       else:
         query = "SELECT * FROM stores where name LIKE '%%%s%%' OR type LIKE '%%%s%%' ORDER BY name" % (searchTerm, searchTerm)
         queryType = 'stores'
-
+        print (query)
       cur.execute(query)
       rows = cur.fetchall()
       
@@ -27,12 +30,15 @@ def mainIndex():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    global currentUser
     db = utils.db_connect()
     cur = db.cursor(cursorclass=MySQLdb.cursors.DictCursor)
     # if user typed in a post ...
     if request.method == 'POST':
       print "HI"
       username = request.form['username']
+      currentUser = username
+
       pw = request.form['pw']
       query = "select * from users WHERE username = '%s' AND password = '%s'" % (username, pw)
       print query
@@ -40,29 +46,6 @@ def login():
       if cur.fetchone():
          return redirect(url_for('mainIndex'))
     return render_template('login.html', selectedMenu='Login')
-
-@app.route('/checkLogin', methods=['POST'])
-def checkLogin():
-  abduction = {'firstname': request.form['firstname'],
-               'lastname': request.form['lastname']}
-  return render_template('report2.html', abduction = abduction)
-
-@app.route('/simple')
-def simple():
-  return render_template('simple.html')
-
-@app.route('/simple2', methods=['POST'])
-def simple2():
-  return render_template('simple2.html')
-
-
-@app.route('/simple3')
-def simple3():
-  return render_template('simple3.html')
-
-@app.route('/simple4', methods=['POST'])
-def simple4():
-  return render_template('simple4.html', name=request.form['name'])
 
 
 
